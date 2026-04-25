@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ollama Model Puller</title>
+  <style>
+    body { font-family: monospace; background: #0d1117; color: #58a6ff; padding: 20px; }
+    h1 { color: #7ee787; }
+    button { background: #238636; color: white; border: none; padding: 10px 20px; cursor: pointer; margin: 5px; }
+    button:hover { background: #2ea043; }
+    button:disabled { background: #30363d; cursor: not-allowed; }
+    #log { background: #161b22; border: 1px solid #30363d; padding: 15px; margin-top: 20px; min-height: 300px; white-space: pre-wrap; }
+    .model-btn { font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Ollama Model Puller - Scene 1</h1>
+  <p>Click buttons below to pull models from ollama.com to your local Ollama server.</p>
+  <div id="buttons">
+    <button class="model-btn" onclick="pullModel('mistral')">Pull Mistral (~4GB)</button>
+    <button class="model-btn" onclick="pullModel('llama2')">Pull Llama2 (~3.8GB)</button>
+    <button class="model-btn" onclick="pullModel('codellama')">Pull CodeLlama (~3.8GB)</button>
+    <button class="model-btn" onclick="pullModel('gemma:2b')">Pull Gemma 2B (~1.5GB)</button>
+    <button class="model-btn" onclick="pullModel('phi')">Pull Phi (~1.7GB)</button>
+    <button class="model-btn" onclick="pullModel('tinyllama')">Pull TinyLlama (~637MB)</button>
+    <button class="model-btn" onclick="pullModel('neural-chat')">Pull Neural Chat (~4.1GB)</button>
+    <button class="model-btn" onclick="pullAll()">PULL ALL MODELS</button>
+  </div>
+  <h2>Log:</h2>
+  <div id="log">Ready. Click a button to start pulling models...</div>
+  <script>
+    const log = document.getElementById('log');
+    function append(msg) { log.innerHTML += '<br>' + msg; log.scrollTop = log.scrollHeight; }
+    async function pullModel(name) {
+      append('<br>--- Pulling ' + name + ' ---');
+      try {
+        const resp = await fetch('http://localhost:11434/api/pull', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name })
+        });
+        if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
+        const reader = resp.body.getReader();
+        const dec = new TextDecoder();
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = dec.decode(value);
+          const lines = chunk.split('\n').filter(l => l.trim());
+          for (const line of lines) {
+            try {
+              const data = JSON.parse(line);
+              if (data.status) append(name + ': ' + data.status + (data.completed ? ' (' + Math.round(data.completed/1024/1024) + 'MB)' : ''));
+            } catch(e) { append(name + ': ' + line); }
+          }
+        }
+        append(name + ': DONE!');
+      } catch (e) {
+        append(name + ': ERROR - ' + e.message);
+      }
+    }
+    async function pullAll() {
+      const models = ['mistral', 'llama2', 'codellama', 'gemma:2b', 'phi', 'tinyllama', 'neural-chat'];
+      for (const m of models) {
+        await pullModel(m);
+      }
+      append('<br>=== ALL MODELS PULLED ===');
+    }
+  </script>
+</body>
+</html>
