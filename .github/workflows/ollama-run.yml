@@ -1,0 +1,37 @@
+name: Ollama Scene 1 Runner
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  ollama-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+
+      - name: Pull llama2 model
+        run: |
+          ollama pull llama2
+
+      - name: Start Ollama server in background
+        run: |
+          ollama serve &
+          sleep 10
+
+      - name: Test Ollama API
+        run: |
+          curl http://localhost:11434/api/generate -d '{
+            "model": "llama2",
+            "prompt": "Hello, this is Scene 1 test from GitHub Actions!",
+            "stream": false
+          }'
+
+      - name: List installed models
+        run: ollama list
