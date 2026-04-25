@@ -16,14 +16,19 @@ jobs:
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
 
+      - name: Start Ollama daemon
+        run: |
+          nohup ollama serve > ollama.log 2>&1 &
+          sleep 15
+          echo "Ollama daemon started"
+
+      - name: Verify Ollama is running
+        run: |
+          curl -s http://localhost:11434/api/tags
+
       - name: Pull llama2 model
         run: |
           ollama pull llama2
-
-      - name: Start Ollama server in background
-        run: |
-          ollama serve &
-          sleep 10
 
       - name: Test Ollama API
         run: |
