@@ -30,16 +30,16 @@ else
 fi
 
 # Pull model if not present
-echo "Checking for llama2 model..."
-if ! ollama list | grep -q llama2; then
-    echo "Pulling llama2 model..."
-    ollama pull llama2
+echo "Checking for qwen3.5:0.8b model..."
+if ! ollama list | grep -q qwen3.5:0.8b; then
+    echo "Pulling qwen3.5:0.8b model..."
+    ollama pull qwen3.5:0.8b
 else
-    echo "llama2 model already exists."
+    echo "qwen3.5:0.8b model already exists."
 fi
 
 # Run the model
-echo "Running Ollama with llama2..."
-ollama run llama2 "Hello! This is Scene 1 running on your local machine."
+echo "Running Ollama with qwen3.5:0.8b..."
+ollama run qwen3.5:0.8b "Hello! This is Scene 1 running on your local machine."
 
 echo "=== Scene 1 Complete ==="
