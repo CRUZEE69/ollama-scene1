@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Scene 1 - Ollama Runner Script
